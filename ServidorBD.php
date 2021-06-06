@@ -12,15 +12,18 @@ class ServidorBD {
 		$this->usuario = "root";
 		$this->password = "";
 		$this->nombreBD = "ej_alumnos";
-		$this->conexion = $this->nuevaConexion();
+		$this->conexion = $this->nuevaConexion("localhost","ej_alumnos","root","");
 	}
 /********************************************************************************/
 // Funciones específicas de la tabla alumnos
 	public function insertarAlumno($a) {
+		$ci = $a->getCedula();
+		$g = $a->getGrupo();
+		$cB = $a->getCuotaBase();
 		$consulta = "INSERT INTO alumnos (cedula, grupo, cuotaBase)
-              		VALUES ('$a->getCedula()','$a->getGrupo()','$a->getCuotaBase()')";
+              		VALUES ('$ci','$g','$cB')";
 
-		$sentencia= $conexion->prepare($consulta);
+		$sentencia= $this->conexion->prepare($consulta);
 
 		if ($sentencia != true) {
   			echo "\nPDO::errorInfo():\n";
@@ -32,7 +35,7 @@ class ServidorBD {
 /********************************************************************************/	
 	public function obtenerAlumnos() {
 		$consulta = "SELECT cedula, grupo, cuotaBase FROM alumnos";
-		$sentencia= $conexion->prepare($consulta);
+		$sentencia= $this->conexion->prepare($consulta);
 
 		if ($sentencia != true) {
 		  	echo "\nPDO::errorInfo():\n";
@@ -41,24 +44,25 @@ class ServidorBD {
 		/*Ejecuta la sentencia SQL*/
 		$sentencia->execute();
 
-		$numero = $sentencia->rowCount();
+		$num = $sentencia->rowCount();
 		if($num > 0){
     		$listado = [];
     		while($fila = $sentencia->fetch(PDO::FETCH_ASSOC)){
       		//array_push($listado, $fila);
       		$listado[] = $fila;
+				//echo "<p>$listado</p>";
     		}
 		}
 		var_dump($listado);
 		//return $listado;
 	}	
 /********************************************************************************/	
-	public function nuevaConexion() {
+	private function nuevaConexion($servidor,$nombreBD,$usuario,$password) {
 		$con = null;
 		try {
   			$con = new PDO('mysql:host='.$servidor.';dbname='.$nombreBD
   										.';charset=utf8',$usuario,$password);
-  			echo "Conexión exitosa: $conexion";
+  			//echo "Conexión exitosa";
 		} catch (PDOException $excepcion) {
       	die($excepcion->getMessage());
 		}
